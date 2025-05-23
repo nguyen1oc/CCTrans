@@ -230,16 +230,13 @@ class SBlock(TimmBlock):
         return super(SBlock, self).forward(x)
 
 
-class GroupBlock(TimmBlock):
+class GroupBlock(Block): 
     def __init__(self, dim, num_heads, mlp_ratio=4., qkv_bias=False, qk_scale=None, drop=0., attn_drop=0.,
-                 drop_path=0., act_layer=nn.GELU, norm_layer=nn.LayerNorm, sr_ratio=1, ws=1):
-
-        #super(GroupBlock, self).__init__(dim, num_heads, mlp_ratio, qkv_bias, qk_scale, drop, attn_drop,
-        #                                drop_path, act_layer, norm_layer)
-
-        #delete the qk_scale
-        super(GroupBlock, self).__init__(dim, num_heads, mlp_ratio, qkv_bias, drop, attn_drop,
-                                        drop_path, act_layer, norm_layer)
+                 drop_path=0., act_layer=nn.GELU, norm_layer=nn.LayerNorm, sr_ratio=1, ws=1, init_values=1e-5):
+        super().__init__(dim, num_heads, mlp_ratio, qkv_bias, qk_scale, drop, attn_drop,
+                        drop_path, act_layer, norm_layer, sr_ratio)
+        
+        # Xử lý cơ chế attention
         del self.attn
         if ws == 1:
             self.attn = Attention(dim, num_heads, qkv_bias, qk_scale, attn_drop, drop, sr_ratio)
@@ -559,7 +556,7 @@ def alt_gvt_large(pretrained=False, **kwargs):
     model.default_cfg = _cfg()
     if pretrained:
         '''download from https://github.com/Meituan-AutoML/Twins/alt_gvt_large.pth'''
-        checkpoint = torch.load('/train_folder/head_detection/CCTrans/model_weights/alt_gvt_large.pth') # todo pass path as argument
+        checkpoint = torch.load('./pretrained/alt_gvt_large.pth') # todo pass path as argument
         model.load_state_dict(checkpoint, strict=False)
         print("load transformer pretrained")
     return model
